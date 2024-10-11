@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import '../App.css';
-import { Container, TextField, Typography, Card, CardContent, CircularProgress, Grid } from '@mui/material';
+import '../App.css'; 
+import { Container, TextField, Typography, Card, CardContent, CircularProgress, Grid, IconButton, Button } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function App() {
   const [weather, setWeather] = useState(null);
@@ -9,9 +10,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(4);  
   const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
 
-  // Memoize fetchWeather to avoid unnecessary re-renders
   const fetchWeather = useCallback(async (city) => {
     setLoading(true);
     setError('');
@@ -20,7 +22,6 @@ function App() {
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
       );
       setWeather(response.data);
-
       setSearchHistory((prevHistory) =>
         prevHistory.some((item) => item.name === response.data.name)
           ? prevHistory
@@ -44,6 +45,29 @@ function App() {
     if (e.key === 'Enter' && e.target.value.trim()) {
       fetchWeather(e.target.value.trim());
       setCity(e.target.value.trim());
+    }
+  };
+
+  const handleDelete = (index) => {
+    setSearchHistory((prevHistory) => prevHistory.filter((_, i) => i !== index));
+  };
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = searchHistory.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(searchHistory.length / itemsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
     }
   };
 
@@ -79,18 +103,57 @@ function App() {
       </Typography>
 
       <Grid container spacing={2} style={{ marginTop: '20px' }}>
-        {searchHistory.map((item, index) => (
+        {currentItems.map((item, index) => (
           <Grid item xs={12} sm={6} key={index}>
             <Card>
               <CardContent>
                 <Typography variant="h6">{item.name}</Typography>
                 <Typography>{item.main.temp}°C</Typography>
                 <Typography>{item.weather[0].description}</Typography>
+                <IconButton onClick={() => handleDelete(index)} aria-label="delete">
+                  <DeleteIcon />
+                </IconButton>
               </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
+
+      {/* Pagination Controls */}
+      <div style={{ marginTop: '20px' }}>
+        <Button
+          onClick={handlePreviousPage}
+          disabled={currentPage === 1}
+          sx={{
+            backgroundColor: '#0072ff',
+            color: '#fff',
+            padding: '10px 20px',
+            borderRadius: '25px',
+            '&:hover': { backgroundColor: '#0056cc' },
+            '&:disabled': { backgroundColor: '#b0c4de' },
+            marginRight: '10px',
+          }}
+        >
+          Previous
+        </Button>
+        <Typography variant="body1" component="span" style={{ margin: '0 10px' }}>
+          Page {currentPage} of {totalPages}
+        </Typography>
+        <Button
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages}
+          sx={{
+            backgroundColor: '#0072ff',
+            color: '#fff',
+            padding: '10px 20px',
+            borderRadius: '25px',
+            '&:hover': { backgroundColor: '#0056cc' },
+            '&:disabled': { backgroundColor: '#b0c4de' },
+          }}
+        >
+          Next
+        </Button>
+      </div>
     </Container>
   );
 }
