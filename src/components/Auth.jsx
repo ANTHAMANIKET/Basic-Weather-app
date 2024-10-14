@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Container, TextField, Button, Typography } from '@mui/material';
 import PropTypes from 'prop-types'; 
 
-// Function to generate SHA-256 hash
+
 const hashPassword = async (password) => {
   const msgBuffer = new TextEncoder().encode(password); 
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer); 
   const hashArray = Array.from(new Uint8Array(hashBuffer)); 
   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); 
-  return hashHex; // Return the hashed password
+  return hashHex; 
 };
 
 const Auth = ({ onLogin }) => {
@@ -22,8 +22,8 @@ const Auth = ({ onLogin }) => {
 
     if (isSignup) {
       if (email && password) {
-        const hashedPassword = await hashPassword(password); // Hash the password
-        localStorage.setItem('user', JSON.stringify({ email, password: hashedPassword })); // Save hashed password
+        const hashedPassword = await hashPassword(password);
+        localStorage.setItem('user', JSON.stringify({ email, password: hashedPassword }));
         onLogin();
       } else {
         setError('Please fill in all fields');
@@ -31,7 +31,7 @@ const Auth = ({ onLogin }) => {
     } else {
       if (userData) {
         const savedUser = JSON.parse(userData);
-        const hashedPassword = await hashPassword(password); // Hash the input password
+        const hashedPassword = await hashPassword(password); 
         if (savedUser.email === email && savedUser.password === hashedPassword) {
           onLogin();
         } else {
