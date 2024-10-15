@@ -5,7 +5,7 @@ import { Container, TextField, Typography, Card, CardContent, CircularProgress, 
 import DeleteIcon from '@mui/icons-material/Delete';
 import Auth from './Auth'; 
 
-function App() {
+const App = () => {
   const [weather, setWeather] = useState(null);
   const [city, setCity] = useState('');    
   const [loading, setLoading] = useState(false);
@@ -56,13 +56,13 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false); 
+    localStorage.removeItem('token'); // Remove the token on logout
   };
 
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = searchHistory.slice(indexOfFirstItem, indexOfLastItem);
-
   const totalPages = Math.ceil(searchHistory.length / itemsPerPage);
 
   const handleNextPage = () => {
@@ -131,36 +131,13 @@ function App() {
 
           {/* Pagination Controls */}
           <div style={{ marginTop: '20px' }}>
-            <Button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              sx={{
-                backgroundColor: '#0072ff',
-                color: '#fff',
-                padding: '10px 20px',
-                borderRadius: '25px',
-                '&:hover': { backgroundColor: '#0056cc' },
-                '&:disabled': { backgroundColor: '#b0c4de' },
-                marginRight: '10px',
-              }}
-            >
+            <Button onClick={handlePreviousPage} disabled={currentPage === 1}>
               Previous
             </Button>
             <Typography variant="body1" component="span" style={{ margin: '0 10px' }}>
               Page {currentPage} of {totalPages}
             </Typography>
-            <Button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              sx={{
-                backgroundColor: '#0072ff',
-                color: '#fff',
-                padding: '10px 20px',
-                borderRadius: '25px',
-                '&:hover': { backgroundColor: '#0056cc' },
-                '&:disabled': { backgroundColor: '#b0c4de' },
-              }}
-            >
+            <Button onClick={handleNextPage} disabled={currentPage === totalPages}>
               Next
             </Button>
           </div>

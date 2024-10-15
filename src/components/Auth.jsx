@@ -1,15 +1,7 @@
 import { useState } from 'react';
 import { Container, TextField, Button, Typography } from '@mui/material';
-import PropTypes from 'prop-types'; 
-
-
-const hashPassword = async (password) => {
-  const msgBuffer = new TextEncoder().encode(password); 
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer); 
-  const hashArray = Array.from(new Uint8Array(hashBuffer)); 
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); 
-  return hashHex; 
-};
+import { signup, login } from '../api'; 
+import PropTypes from 'prop-types'; // Import PropTypes
 
 const Auth = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -18,28 +10,20 @@ const Auth = ({ onLogin }) => {
   const [error, setError] = useState('');
 
   const handleAuth = async () => {
-    const userData = localStorage.getItem('user');
-
-    if (isSignup) {
-      if (email && password) {
-        const hashedPassword = await hashPassword(password);
-        localStorage.setItem('user', JSON.stringify({ email, password: hashedPassword }));
-        onLogin();
+    try {
+      if (isSignup) {
+        const response = await signup(email, password);
+        console.log('Signup successful:', response);
+        onLogin(); 
       } else {
-        setError('Please fill in all fields');
+        const response = await login(email, password);
+        console.log('Login successful:', response);
+        localStorage.setItem('token', response.access_token); 
+        onLogin(); 
       }
-    } else {
-      if (userData) {
-        const savedUser = JSON.parse(userData);
-        const hashedPassword = await hashPassword(password); 
-        if (savedUser.email === email && savedUser.password === hashedPassword) {
-          onLogin();
-        } else {
-          setError('Invalid email or password');
-        }
-      } else {
-        setError('No user found, please sign up');
-      }
+    } catch (err) {
+      setError('Authentication failed: ' + err.response?.data?.message || err.message);
+      console.error('Auth error:', err);
     }
   };
 
